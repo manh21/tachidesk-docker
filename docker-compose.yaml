@@ -1,14 +1,5 @@
 version: "3.7"
 
-# used for specific settings you have outside of your docker config
-# ex: proxies to external servers, storage configuration...
-# remove this block entirely if not needed (Only used for Docker Swarm)
-# configs:
-#   caddy-basic-content:
-#     file: ./Caddyfile
-#     labels:
-#       caddy:
-
 services:
   tachidesk:
     image: ghcr.io/suwayomi/tachidesk
@@ -24,32 +15,3 @@ services:
     ports:
       - 4567:4567
     restart: unless-stopped
-    labels:
-      caddy: tachidesk.com
-      caddy.reverse_proxy: "{{upstreams 4567}}"
-      # remove the following line when you have verified your setup
-      # Otherwise you risk being rate limited by let's encrypt
-      caddy.tls.ca: https://acme-staging-v02.api.letsencrypt.org/directory
-    
-  caddy:
-    depends_on:
-      - tachidesk
-    image: lucaslorentz/caddy-docker-proxy:ci-alpine
-    ports:
-      - 80:80
-      - 443:443
-    networks:
-      - caddy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      # this volume is needed to keep the certificates
-      # otherwise, new ones will be re-issued upon restart
-      - caddy_data:/data  
-
-networks:
-  caddy:
-    external: false
-    name: caddy
-
-volumes:
-  caddy_data: {}

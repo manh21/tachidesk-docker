@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  tachidesk:
+    image: ghcr.io/suwayomi/tachidesk
+    container_name: tachidesk
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Jakarta # Use TZ database name from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    volumes:
+      - /var/tachidesk:/home/suwayomi/.local/share/Tachidesk
+    networks:
+      - caddy
+    ports:
+      - 4567:4567
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tachidesk.entrypoints=http"
+      - "traefik.http.routers.tachidesk.rule=Host(`tachidesk.local.example.com`)"
+      - "traefik.http.middlewares.tachidesk-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.tachidesk.middlewares=tachidesk-https-redirect"
+      - "traefik.http.routers.tachidesk-secure.entrypoints=https"
+      - "traefik.http.routers.tachidesk-secure.rule=Host(`tachidesk.local.example.com`)"
+      - "traefik.http.routers.tachidesk-secure.tls=true"
+      - "traefik.http.routers.tachidesk-secure.service=tachidesk"
+      - "traefik.http.services.tachidesk.loadbalancer.server.port=9000"
+      - "traefik.docker.network=proxy"
+  
+networks:
+  proxy:
+    external: true
